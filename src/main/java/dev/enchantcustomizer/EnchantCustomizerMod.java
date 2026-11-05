@@ -17,6 +17,6 @@ public class EnchantCustomizerMod implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(ActionPayload.ID, ActionPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ResultPayload.ID, ResultPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ActionPayload.ID,
-                (payload, context) -> ServerHandler.handle(context.player(), payload));
+                (payload, context) -> ServerHandler.handle(context.player(), context.server(), payload));
     }
 }

@@ -14,19 +14,24 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
-/** Server-authoritative handling: every target is revalidated before it is touched. */
+/** Server-authoritative handling: OP check + every target is revalidated before it is touched. */
 public final class ServerHandler {
     private record Result(boolean ok, String msg) {}
 
     private ServerHandler() {}
 
-    public static void handle(ServerPlayerEntity player, ActionPayload a) {
+    public static void handle(ServerPlayerEntity player, MinecraftServer server, ActionPayload a) {
         Result r;
         try {
-            r = run(player, a);
+            if (server.isDedicated() && !server.getPlayerManager().isOperator(player.getPlayerConfigEntry())) {
+                r = new Result(false, "Only server OPs can use the Enchantment Customizer");
+            } else {
+                r = run(player, a);
+            }
         } catch (Exception ex) {
             EnchantCustomizerMod.LOGGER.error("Enchantment action failed", ex);
             r = new Result(false, "Operation failed - see server log");
@@ -55,11 +60,6 @@ public final class ServerHandler {
             }
         }
         if (targets.isEmpty()) return fail("Nothing selected");
-        boolean single = act <= ActionPayload.CLEAR;
-        if (single && targets.size() > 1) {
-            Map.Entry<Integer, String> first = targets.entrySet().iterator().next();
-            targets = new LinkedHashMap<>(Map.of(first.getKey(), first.getValue()));
-        }
 
         RegistryEntry<Enchantment> ench = null;
         if (act == ActionPayload.SET_LEVEL || act == ActionPayload.REMOVE) {
@@ -101,12 +101,12 @@ public final class ServerHandler {
         }
         inv.markDirty();
 
-        if (single) {
+        if (targets.size() == 1) {
             return done > 0 ? new Result(true, "Done" + (notes.isEmpty() ? "" : " (" + String.join(", ", notes) + ")"))
                     : fail(lastErr == null ? "Nothing changed" : lastErr);
         }
         String m = "Modified " + done + " item(s), skipped " + skipped;
-        if (done == 0 && lastErr != null) m += " (" + lastErr + ")";
+        if (skipped > 0 && lastErr != null) m += " (" + lastErr + ")";
         return new Result(done > 0, m);
     }
 }
