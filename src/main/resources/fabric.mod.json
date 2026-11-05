@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "Enchantment Customizer",
   "description": "Standalone GUI to customize enchantments on inventory items. Default key: K.",
-  "authors": ["Priyanshu1lyt"],
+  "authors": ["NotHeartYT", "Praveen_god_67", "Nebrion_Verse"],
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
