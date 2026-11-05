@@ -308,6 +308,13 @@ public class CustomizerScreen extends Screen {
 
     // ---------- rendering ----------
 
+    private static void outline(DrawContext ctx, int x, int y, int w, int h, int color) {
+        ctx.fill(x, y, x + w, y + 1, color);
+        ctx.fill(x, y + h - 1, x + w, y + h, color);
+        ctx.fill(x, y, x + 1, y + h, color);
+        ctx.fill(x + w - 1, y, x + w, y + h, color);
+    }
+
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
         super.render(ctx, mx, my, delta);
@@ -329,7 +336,7 @@ public class CustomizerScreen extends Screen {
             int slot = slots.get(idx);
             int y = top + k * ROW_H;
             ctx.drawItem(client.player.getInventory().getStack(slot), midX + 2, y + 2);
-            if (slot == selSlot) ctx.drawBorder(midX, y, midW - 18, ROW_H - 2, 0xFFFFD700);
+            if (slot == selSlot) outline(ctx, midX, y, midW - 18, ROW_H - 2, 0xFFFFD700);
         }
 
         if (selSlot >= 0) {
